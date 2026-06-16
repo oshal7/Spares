@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Spares</string>
+    <string name="channel_name">Spares Listener</string>
+    <string name="channel_description">Keeps the SMS listener alive in the background</string>
+</resources>
