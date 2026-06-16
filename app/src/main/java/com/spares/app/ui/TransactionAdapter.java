@@ -21,22 +21,18 @@ public class TransactionAdapter extends ListAdapter<Transaction, TransactionAdap
 
     private static final DiffUtil.ItemCallback<Transaction> DIFF_CB =
         new DiffUtil.ItemCallback<Transaction>() {
-            @Override
-            public boolean areItemsTheSame(@NonNull Transaction a, @NonNull Transaction b) {
+            @Override public boolean areItemsTheSame(@NonNull Transaction a, @NonNull Transaction b) {
                 return a.id == b.id;
             }
-            @Override
-            public boolean areContentsTheSame(@NonNull Transaction a, @NonNull Transaction b) {
+            @Override public boolean areContentsTheSame(@NonNull Transaction a, @NonNull Transaction b) {
                 return a.isSettled == b.isSettled && a.roundUpAmount == b.roundUpAmount;
             }
         };
 
     private static final SimpleDateFormat DATE_FMT =
-        new SimpleDateFormat("dd MMM, hh:mm a", Locale.getDefault());
+        new SimpleDateFormat("dd MMM · hh:mm a", Locale.getDefault());
 
-    public TransactionAdapter() {
-        super(DIFF_CB);
-    }
+    public TransactionAdapter() { super(DIFF_CB); }
 
     @NonNull
     @Override
@@ -48,31 +44,27 @@ public class TransactionAdapter extends ListAdapter<Transaction, TransactionAdap
 
     @Override
     public void onBindViewHolder(@NonNull TxViewHolder holder, int position) {
-        Transaction tx = getItem(position);
-        holder.bind(tx);
+        holder.bind(getItem(position));
     }
 
     static class TxViewHolder extends RecyclerView.ViewHolder {
-        private final TextView tvSender;
-        private final TextView tvTimestamp;
-        private final TextView tvAmounts;
-        private final TextView tvSettled;
+        private final TextView tvSender, tvAmounts, tvTimestamp, tvRoundup, tvSettled;
 
-        TxViewHolder(@NonNull View itemView) {
-            super(itemView);
-            tvSender    = itemView.findViewById(R.id.tv_sender);
-            tvTimestamp = itemView.findViewById(R.id.tv_timestamp);
-            tvAmounts   = itemView.findViewById(R.id.tv_amounts);
-            tvSettled   = itemView.findViewById(R.id.tv_settled);
+        TxViewHolder(@NonNull View v) {
+            super(v);
+            tvSender    = v.findViewById(R.id.tv_sender);
+            tvAmounts   = v.findViewById(R.id.tv_amounts);
+            tvTimestamp = v.findViewById(R.id.tv_timestamp);
+            tvRoundup   = v.findViewById(R.id.tv_roundup);
+            tvSettled   = v.findViewById(R.id.tv_settled);
         }
 
         void bind(Transaction tx) {
             tvSender.setText(tx.senderId);
+            tvAmounts.setText(String.format(Locale.getDefault(), "₹%.2f spent", tx.originalAmount));
             tvTimestamp.setText(DATE_FMT.format(new Date(tx.timestamp)));
-            tvAmounts.setText(String.format(Locale.getDefault(),
-                "₹%.2f  →  +₹%.2f saved", tx.originalAmount, tx.roundUpAmount));
-            tvSettled.setText(tx.isSettled == 1 ? "✓ Settled" : "Pending");
-            tvSettled.setAlpha(tx.isSettled == 1 ? 0.5f : 1.0f);
+            tvRoundup.setText(String.format(Locale.getDefault(), "+₹%.2f", tx.roundUpAmount));
+            tvSettled.setText(tx.isSettled == 1 ? "transferred" : "pending");
         }
     }
 }

@@ -6,26 +6,88 @@
     android:layout_height="match_parent"
     android:background="@color/bg_dark">
 
-    <!-- Scrollable content -->
+    <!-- Scrollable body -->
     <androidx.core.widget.NestedScrollView
+        android:id="@+id/scroll_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingBottom="100dp"
+        android:paddingBottom="96dp"
         android:clipToPadding="false">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="24dp">
+            android:orientation="vertical">
 
-            <!-- ── TOP: Goal Progress Card ── -->
+            <!-- ══ HEADER BAR ══════════════════════════════════════════════ -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingStart="20dp"
+                android:paddingEnd="12dp"
+                android:paddingTop="20dp"
+                android:paddingBottom="8dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="SPARES"
+                        android:textColor="@color/accent_green"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:letterSpacing="0.15" />
+
+                    <TextView
+                        android:id="@+id/tv_last_refresh"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Tap ↻ to scan inbox"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="11sp" />
+
+                </LinearLayout>
+
+                <!-- Refresh button -->
+                <androidx.appcompat.widget.AppCompatImageButton
+                    android:id="@+id/btn_refresh"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:background="@drawable/btn_icon_bg"
+                    android:src="@drawable/ic_refresh"
+                    android:contentDescription="Refresh"
+                    app:tint="@color/accent_green" />
+
+                <!-- Settings / change goal -->
+                <androidx.appcompat.widget.AppCompatImageButton
+                    android:id="@+id/btn_change_goal"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:layout_marginStart="4dp"
+                    android:background="@drawable/btn_icon_bg"
+                    android:src="@drawable/ic_settings"
+                    android:contentDescription="Change goal"
+                    app:tint="@color/text_secondary" />
+
+            </LinearLayout>
+
+            <!-- ══ GOAL HERO CARD ══════════════════════════════════════════ -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="20dp"
                 app:cardBackgroundColor="@color/card_dark"
-                app:cardCornerRadius="20dp"
+                app:cardCornerRadius="24dp"
                 app:cardElevation="0dp">
 
                 <LinearLayout
@@ -34,99 +96,248 @@
                     android:orientation="vertical"
                     android:padding="24dp">
 
-                    <!-- Goal Label -->
+                    <!-- Goal name row -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="4dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="SAVING FOR"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp"
+                            android:letterSpacing="0.12"
+                            android:textAllCaps="true" />
+
+                        <!-- Refresh spinner (hidden by default) -->
+                        <ProgressBar
+                            android:id="@+id/progress_spinner"
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:visibility="gone"
+                            android:indeterminateTint="@color/accent_green" />
+
+                    </LinearLayout>
+
                     <TextView
                         android:id="@+id/tv_goal_title"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Your Goal"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="13sp"
-                        android:letterSpacing="0.1"
-                        android:textAllCaps="true" />
+                        android:textColor="@color/text_primary"
+                        android:textSize="22sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="20dp" />
 
-                    <!-- Accumulated Amount -->
-                    <TextView
-                        android:id="@+id/tv_accumulated_amount"
-                        android:layout_width="wrap_content"
+                    <!-- Amount display -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="₹0.00"
-                        android:textColor="@color/accent_green"
-                        android:textSize="44sp"
-                        android:textStyle="bold" />
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="12dp">
 
-                    <!-- Target -->
-                    <TextView
-                        android:id="@+id/tv_target_amount"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="of ₹0.00"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="15sp" />
+                        <TextView
+                            android:id="@+id/tv_accumulated_amount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="₹0.00"
+                            android:textColor="@color/accent_green"
+                            android:textSize="40sp"
+                            android:textStyle="bold" />
 
-                    <!-- Progress Bar -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:layout_marginStart="12dp">
+
+                            <TextView
+                                android:id="@+id/tv_target_amount"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="of ₹0.00"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="13sp" />
+
+                            <TextView
+                                android:id="@+id/tv_progress_label"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0% saved"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="12sp"
+                                android:layout_marginTop="2dp" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <!-- Progress track -->
                     <ProgressBar
                         android:id="@+id/progress_bar"
                         style="@style/Widget.AppCompat.ProgressBar.Horizontal"
                         android:layout_width="match_parent"
-                        android:layout_height="10dp"
-                        android:layout_marginTop="20dp"
+                        android:layout_height="8dp"
                         android:max="100"
                         android:progress="0"
-                        android:progressDrawable="@drawable/progress_bar_drawable" />
+                        android:progressDrawable="@drawable/progress_bar_drawable"
+                        android:layout_marginBottom="16dp" />
 
-                    <!-- Progress % label -->
-                    <TextView
-                        android:id="@+id/tv_progress_label"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="0% reached"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="12sp" />
+                    <!-- Divider -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#252535"
+                        android:layout_marginBottom="16dp" />
 
-                    <!-- Unsettled pool -->
-                    <TextView
-                        android:id="@+id/tv_unsettled_amount"
-                        android:layout_width="wrap_content"
+                    <!-- Pending row -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
-                        android:text="₹0.00 pending"
-                        android:textColor="@color/accent_yellow"
-                        android:textSize="14sp" />
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="READY TO TRANSFER"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="10sp"
+                                android:letterSpacing="0.1"
+                                android:textAllCaps="true" />
+
+                            <TextView
+                                android:id="@+id/tv_unsettled_amount"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="₹0.00"
+                                android:textColor="@color/accent_yellow"
+                                android:textSize="22sp"
+                                android:textStyle="bold" />
+
+                        </LinearLayout>
+
+                        <!-- Mini transfer chip -->
+                        <TextView
+                            android:id="@+id/tv_threshold_hint"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/badge_background"
+                            android:paddingStart="12dp"
+                            android:paddingEnd="12dp"
+                            android:paddingTop="6dp"
+                            android:paddingBottom="6dp"
+                            android:text="Need ₹50"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="12sp" />
+
+                    </LinearLayout>
 
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- ── LEDGER SECTION HEADER ── -->
+            <!-- ══ REFRESH STATUS BAR ══════════════════════════════════════ -->
             <TextView
+                android:id="@+id/tv_refresh_status"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:text="Recent Transactions"
-                android:textColor="@color/text_secondary"
-                android:textSize="13sp"
-                android:letterSpacing="0.1"
-                android:textAllCaps="true" />
+                android:layout_marginStart="20dp"
+                android:layout_marginEnd="20dp"
+                android:layout_marginBottom="16dp"
+                android:text=""
+                android:textColor="@color/accent_green"
+                android:textSize="12sp"
+                android:visibility="gone" />
 
-            <!-- ── TRANSACTION LEDGER ── -->
+            <!-- ══ TRANSACTIONS SECTION ════════════════════════════════════ -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
+                android:layout_marginBottom="12dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="TRANSACTIONS"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="11sp"
+                    android:letterSpacing="0.12"
+                    android:textAllCaps="true" />
+
+                <TextView
+                    android:id="@+id/tv_tx_count"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textColor="@color/text_secondary"
+                    android:textSize="11sp" />
+
+            </LinearLayout>
+
+            <!-- Empty state -->
+            <LinearLayout
+                android:id="@+id/layout_empty"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center_horizontal"
+                android:paddingTop="32dp"
+                android:paddingBottom="32dp"
+                android:visibility="visible">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="No transactions yet"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Tap ↻ to scan your SMS inbox"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="12sp" />
+
+            </LinearLayout>
+
+            <!-- Ledger list -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rv_transactions"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
                 android:nestedScrollingEnabled="false" />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- ── STICKY BOTTOM ACTION BAR ── -->
+    <!-- ══ STICKY BOTTOM TRANSFER BUTTON ══════════════════════════════════ -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        android:background="@color/bg_dark"
-        android:elevation="8dp"
+        android:background="@drawable/bottom_bar_bg"
         android:padding="16dp">
 
         <Button
@@ -139,6 +350,7 @@
             android:textStyle="bold"
             android:backgroundTint="@color/accent_green"
             android:textColor="@color/bg_dark"
+            android:stateListAnimator="@null"
             style="@style/Widget.MaterialComponents.Button" />
 
     </LinearLayout>

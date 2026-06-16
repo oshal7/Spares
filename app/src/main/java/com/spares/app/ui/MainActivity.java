@@ -10,8 +10,10 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.text.InputType;
 import android.text.TextUtils;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -20,6 +22,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -32,7 +35,7 @@ import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final double TRANSFER_THRESHOLD = 50.0; // PRD §5
+    private static final double TRANSFER_THRESHOLD = 50.0;
     private static final String PREFS_NAME = "spares_prefs";
     private static final String PREF_VPA   = "savings_vpa";
 
@@ -40,32 +43,28 @@ public class MainActivity extends AppCompatActivity {
     private TransactionAdapter adapter;
     private SharedPreferences prefs;
 
-    // UI references
-    private TextView tvGoalTitle;
-    private TextView tvAccumulatedAmount;
-    private TextView tvTargetAmount;
-    private ProgressBar progressBar;
-    private TextView tvProgressLabel;
+    private TextView tvGoalTitle, tvAccumulatedAmount, tvTargetAmount;
+    private TextView tvProgressLabel, tvUnsettledAmount, tvThresholdHint;
+    private TextView tvLastRefresh, tvRefreshStatus, tvTxCount;
+    private ProgressBar progressBar, progressSpinner;
     private Button btnTransfer;
-    private TextView tvUnsettledAmount;
+    private AppCompatImageButton btnRefresh, btnChangeGoal;
+    private LinearLayout layoutEmpty;
 
-    // Current state
     private Goal currentGoal;
     private double unsettledTotal = 0.0;
 
-    // Permission launcher
     private final ActivityResultLauncher<String[]> permissionLauncher =
         registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
-            boolean receiveSms = Boolean.TRUE.equals(result.get(Manifest.permission.RECEIVE_SMS));
-            boolean readSms    = Boolean.TRUE.equals(result.get(Manifest.permission.READ_SMS));
-            if (receiveSms && readSms) {
+            boolean ok = Boolean.TRUE.equals(result.get(Manifest.permission.RECEIVE_SMS))
+                      && Boolean.TRUE.equals(result.get(Manifest.permission.READ_SMS));
+            if (ok) {
                 requestBatteryOptimizationExemption();
             } else {
                 new AlertDialog.Builder(this)
                     .setTitle("SMS Permission Required")
-                    .setMessage("Spares needs to read incoming bank SMS to detect transactions. " +
-                                "Without this, round-up savings cannot be tracked.")
-                    .setPositiveButton("Grant Permission", (d, w) -> requestSmsPermissions())
+                    .setMessage("Spares needs SMS access to detect bank transactions.")
+                    .setPositiveButton("Grant", (d, w) -> requestSmsPermissions())
                     .setNegativeButton("Exit", (d, w) -> finish())
                     .show();
             }
@@ -82,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
         bindViews();
         setupRecyclerView();
         observeData();
-        requestSmsPermissions(); // PRD §4.1 Assertion Tier 1
+        requestSmsPermissions();
     }
 
     private void bindViews() {
@@ -91,10 +90,35 @@ public class MainActivity extends AppCompatActivity {
         tvTargetAmount      = findViewById(R.id.tv_target_amount);
         progressBar         = findViewById(R.id.progress_bar);
         tvProgressLabel     = findViewById(R.id.tv_progress_label);
-        btnTransfer         = findViewById(R.id.btn_transfer);
         tvUnsettledAmount   = findViewById(R.id.tv_unsettled_amount);
+        tvThresholdHint     = findViewById(R.id.tv_threshold_hint);
+        tvLastRefresh       = findViewById(R.id.tv_last_refresh);
+        tvRefreshStatus     = findViewById(R.id.tv_refresh_status);
+        tvTxCount           = findViewById(R.id.tv_tx_count);
+        progressSpinner     = findViewById(R.id.progress_spinner);
+        btnTransfer         = findViewById(R.id.btn_transfer);
+        btnRefresh          = findViewById(R.id.btn_refresh);
+        btnChangeGoal       = findViewById(R.id.btn_change_goal);
+        layoutEmpty         = findViewById(R.id.layout_empty);
 
         btnTransfer.setOnClickListener(v -> launchUpiTransfer());
+
+        btnRefresh.setOnClickListener(v -> {
+            if (Boolean.TRUE.equals(viewModel.isRefreshing.getValue())) return;
+            viewModel.refreshFromSmsInbox();
+        });
+
+        btnChangeGoal.setOnClickListener(v ->
+            new AlertDialog.Builder(this)
+                .setTitle("Change Goal?")
+                .setMessage("This will deactivate the current goal and create a new one.")
+                .setPositiveButton("Yes, change", (d, w) -> {
+                    startActivity(new Intent(this, GoalSetupActivity.class));
+                    finish();
+                })
+                .setNegativeButton("Cancel", null)
+                .show()
+        );
     }
 
     private void setupRecyclerView() {
@@ -105,7 +129,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void observeData() {
-        // Active goal
         viewModel.activeGoal.observe(this, goal -> {
             currentGoal = goal;
             if (goal == null) {
@@ -116,16 +139,39 @@ public class MainActivity extends AppCompatActivity {
             updateGoalUI(goal);
         });
 
-        // Transaction ledger
-        viewModel.recentTransactions.observe(this, transactions ->
-            adapter.submitList(transactions));
+        viewModel.recentTransactions.observe(this, txs -> {
+            adapter.submitList(txs);
+            int count = txs != null ? txs.size() : 0;
+            layoutEmpty.setVisibility(count == 0 ? View.VISIBLE : View.GONE);
+            tvTxCount.setText(count > 0 ? count + " total" : "");
+        });
 
-        // Unsettled savings total
         viewModel.unsettledTotal.observe(this, total -> {
             unsettledTotal = total != null ? total : 0.0;
             tvUnsettledAmount.setText(
-                String.format(Locale.getDefault(), "₹%.2f pending transfer", unsettledTotal));
+                String.format(Locale.getDefault(), "₹%.2f", unsettledTotal));
             updateTransferButton();
+        });
+
+        // Refresh spinner
+        viewModel.isRefreshing.observe(this, refreshing -> {
+            progressSpinner.setVisibility(refreshing ? View.VISIBLE : View.GONE);
+            btnRefresh.setEnabled(!refreshing);
+            btnRefresh.setAlpha(refreshing ? 0.4f : 1.0f);
+            if (refreshing) {
+                tvLastRefresh.setText("Scanning inbox…");
+                tvRefreshStatus.setVisibility(View.GONE);
+            }
+        });
+
+        // Refresh result message
+        viewModel.lastRefreshStatus.observe(this, status -> {
+            if (status == null || status.isEmpty()) return;
+            tvLastRefresh.setText("Last scan: just now");
+            tvRefreshStatus.setText(status);
+            tvRefreshStatus.setVisibility(View.VISIBLE);
+            // Auto-hide after 4 seconds
+            tvRefreshStatus.postDelayed(() -> tvRefreshStatus.setVisibility(View.GONE), 4000);
         });
     }
 
@@ -140,68 +186,64 @@ public class MainActivity extends AppCompatActivity {
             ? (int) Math.min(100, (goal.currentAccumulated / goal.targetAmount) * 100)
             : 0;
         progressBar.setProgress(percent);
-        tvProgressLabel.setText(percent + "% reached");
-
+        tvProgressLabel.setText(percent + "% saved");
         updateTransferButton();
     }
 
     private void updateTransferButton() {
         boolean canTransfer = unsettledTotal >= TRANSFER_THRESHOLD;
         btnTransfer.setEnabled(canTransfer);
-        btnTransfer.setText(String.format(Locale.getDefault(),
-            canTransfer
-                ? "Transfer ₹%.2f to Savings Goal"
-                : "₹%.2f accumulated — need ₹50 min",
-            unsettledTotal));
-    }
-
-    // ── UPI Transfer (PRD §4.3) ───────────────────────────────────────────────
-
-    /**
-     * If a VPA is already stored, fire the UPI intent immediately.
-     * If not (first time), prompt for it, persist it, then fire.
-     */
-    private void launchUpiTransfer() {
-        if (currentGoal == null) return;
-
-        String storedVpa = prefs.getString(PREF_VPA, "").trim();
-
-        if (TextUtils.isEmpty(storedVpa)) {
-            // First time — ask user for their UPI ID
-            promptForVpa(vpa -> fireUpiIntent(vpa));
+        if (canTransfer) {
+            btnTransfer.setText(String.format(Locale.getDefault(),
+                "Transfer ₹%.2f to Goal →", unsettledTotal));
+            tvThresholdHint.setVisibility(View.GONE);
         } else {
-            // Confirm amount + VPA, allow editing
-            confirmAndFireUpi(storedVpa);
+            btnTransfer.setText("Transfer to Savings");
+            tvThresholdHint.setText(String.format(Locale.getDefault(),
+                "Need ₹%.0f more", Math.max(0, TRANSFER_THRESHOLD - unsettledTotal)));
+            tvThresholdHint.setVisibility(View.VISIBLE);
         }
     }
 
-    private void confirmAndFireUpi(String existingVpa) {
+    // ── UPI Transfer ─────────────────────────────────────────────────────────
+
+    private void launchUpiTransfer() {
+        if (currentGoal == null) return;
+        String stored = prefs.getString(PREF_VPA, "").trim();
+        if (TextUtils.isEmpty(stored)) {
+            promptForVpa(this::fireUpiIntent);
+        } else {
+            confirmAndFireUpi(stored);
+        }
+    }
+
+    private void confirmAndFireUpi(String vpa) {
         new AlertDialog.Builder(this)
-            .setTitle("Transfer to Savings")
+            .setTitle("Confirm Transfer")
             .setMessage(String.format(Locale.getDefault(),
-                "Transfer ₹%.2f for \"%s\"\nto UPI ID: %s\n\nChange UPI ID?",
-                unsettledTotal, currentGoal.title, existingVpa))
-            .setPositiveButton("Transfer Now", (d, w) -> fireUpiIntent(existingVpa))
+                "Transfer ₹%.2f to\n%s\n\nfor \"%s\"",
+                unsettledTotal, vpa, currentGoal.title))
+            .setPositiveButton("Transfer Now", (d, w) -> fireUpiIntent(vpa))
             .setNeutralButton("Change UPI ID", (d, w) -> promptForVpa(this::fireUpiIntent))
             .setNegativeButton("Cancel", null)
             .show();
     }
 
     private void promptForVpa(VpaCallback callback) {
-        EditText etVpa = new EditText(this);
-        etVpa.setHint("yourname@okicici");
-        etVpa.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
+        EditText et = new EditText(this);
+        et.setHint("yourname@okicici");
+        et.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
         String existing = prefs.getString(PREF_VPA, "");
-        if (!existing.isEmpty()) etVpa.setText(existing);
+        if (!existing.isEmpty()) et.setText(existing);
 
         new AlertDialog.Builder(this)
-            .setTitle("Your Savings UPI ID")
-            .setMessage("Enter the UPI VPA where round-up savings will be transferred:")
-            .setView(etVpa)
+            .setTitle("Savings UPI ID")
+            .setMessage("Where should round-ups be transferred?")
+            .setView(et)
             .setPositiveButton("Save & Transfer", (d, w) -> {
-                String vpa = etVpa.getText().toString().trim();
+                String vpa = et.getText().toString().trim();
                 if (TextUtils.isEmpty(vpa) || !vpa.contains("@")) {
-                    Toast.makeText(this, "Invalid UPI ID (must contain @)", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Enter a valid UPI ID (eg: name@bank)", Toast.LENGTH_SHORT).show();
                     return;
                 }
                 prefs.edit().putString(PREF_VPA, vpa).apply();
@@ -213,72 +255,50 @@ public class MainActivity extends AppCompatActivity {
 
     private void fireUpiIntent(String vpa) {
         if (currentGoal == null || TextUtils.isEmpty(vpa)) return;
+        String uri = String.format(Locale.getDefault(),
+            "upi://pay?pa=%s&pn=SparesGoal&am=%.2f&cu=INR&tn=Spares+Round-Up",
+            vpa, unsettledTotal);
 
-        String goalNameEncoded = currentGoal.title.replace(" ", "+");
-        String upiUri = String.format(Locale.getDefault(),
-            "upi://pay?pa=%s&pn=SparesGoal&am=%.2f&cu=INR&tn=Spares+Round-Up+%s",
-            vpa, unsettledTotal, goalNameEncoded);
-
-        Intent upiIntent = new Intent(Intent.ACTION_VIEW);
-        upiIntent.setData(Uri.parse(upiUri));
-
-        if (upiIntent.resolveActivity(getPackageManager()) != null) {
-            startActivity(upiIntent);
-            // Mark unsettled transactions as settled
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+        if (intent.resolveActivity(getPackageManager()) != null) {
+            startActivity(intent);
             viewModel.settleAll(() -> runOnUiThread(() ->
-                Toast.makeText(this, "Transfer launched! Ledger cleared.", Toast.LENGTH_LONG).show()
-            ));
+                Toast.makeText(this, "✓ Transfer initiated!", Toast.LENGTH_LONG).show()));
         } else {
-            Toast.makeText(this,
-                "No UPI app found. Please install PhonePe or GPay.",
-                Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "No UPI app found (install GPay or PhonePe)", Toast.LENGTH_LONG).show();
         }
     }
 
-    interface VpaCallback {
-        void onVpa(String vpa);
-    }
+    interface VpaCallback { void onVpa(String vpa); }
 
-    // ── Permission flows (PRD §4.1) ──────────────────────────────────────────
+    // ── Permissions ───────────────────────────────────────────────────────────
 
     private void requestSmsPermissions() {
-        boolean hasReceive = ContextCompat.checkSelfPermission(this,
-            Manifest.permission.RECEIVE_SMS) == PackageManager.PERMISSION_GRANTED;
-        boolean hasRead = ContextCompat.checkSelfPermission(this,
-            Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED;
+        boolean ok = ContextCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS)
+                     == PackageManager.PERMISSION_GRANTED
+                  && ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS)
+                     == PackageManager.PERMISSION_GRANTED;
+        if (ok) { requestBatteryOptimizationExemption(); return; }
 
-        if (hasReceive && hasRead) {
-            requestBatteryOptimizationExemption();
-            return;
-        }
-
-        // Educational backdrop before system dialog (PRD §4.1 Tier 1)
         new AlertDialog.Builder(this)
             .setTitle("SMS Access Required")
-            .setMessage("Spares reads your bank SMS messages locally on this device to detect " +
-                        "transaction amounts. No data leaves your phone — everything is stored " +
-                        "only in local sandboxed storage.\n\nThis is required to automatically " +
-                        "calculate your round-up savings.")
+            .setMessage("Spares reads bank SMS locally on your device to detect transactions. " +
+                        "Nothing leaves your phone.")
             .setPositiveButton("Continue", (d, w) -> permissionLauncher.launch(new String[]{
-                Manifest.permission.RECEIVE_SMS,
-                Manifest.permission.READ_SMS
+                Manifest.permission.RECEIVE_SMS, Manifest.permission.READ_SMS
             }))
             .setCancelable(false)
             .show();
     }
 
-    /**
-     * PRD §4.1 Assertion Tier 2 — battery optimization exemption.
-     * Only prompt if not already exempted (avoids repeated system dialogs).
-     */
     @SuppressWarnings("BatteryLife")
     private void requestBatteryOptimizationExemption() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             android.os.PowerManager pm = (android.os.PowerManager) getSystemService(POWER_SERVICE);
             if (pm != null && !pm.isIgnoringBatteryOptimizations(getPackageName())) {
-                Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
-                intent.setData(Uri.parse("package:" + getPackageName()));
-                startActivity(intent);
+                Intent i = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+                    Uri.parse("package:" + getPackageName()));
+                startActivity(i);
             }
         }
     }

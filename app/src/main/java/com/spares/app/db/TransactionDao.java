@@ -34,4 +34,8 @@ public interface TransactionDao {
 
     @Query("SELECT * FROM transactions ORDER BY timestamp DESC LIMIT 50")
     LiveData<List<Transaction>> getRecentTransactions();
+
+    // Returns the timestamp of the most recent transaction, or 0 if none exist
+    @Query("SELECT COALESCE(MAX(timestamp), 0) FROM transactions")
+    long getLatestTransactionTimestamp();
 }
