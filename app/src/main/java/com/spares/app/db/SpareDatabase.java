@@ -8,7 +8,7 @@ import androidx.room.RoomDatabase;
 
 @Database(
     entities = {Goal.class, Transaction.class},
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 public abstract class SpareDatabase extends RoomDatabase {

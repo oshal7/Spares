@@ -40,12 +40,19 @@ public class Transaction {
     public long timestamp;
 
     @ColumnInfo(name = "is_settled")
-    public int isSettled = 0; // 0 = unsettled, 1 = settled
+    public int isSettled = 0;
+
+    @ColumnInfo(name = "category")
+    public String category = "DEBIT"; // DEBIT, CREDIT, TRANSFER
+
+    @ColumnInfo(name = "merchant")
+    public String merchant = "";
 
     public Transaction() {}
 
     public Transaction(int goalId, String senderId, String rawBody,
-                       double originalAmount, double roundUpAmount, long timestamp) {
+                       double originalAmount, double roundUpAmount, long timestamp,
+                       String category, String merchant) {
         this.goalId = goalId;
         this.senderId = senderId;
         this.rawBody = rawBody;
@@ -53,5 +60,7 @@ public class Transaction {
         this.roundUpAmount = roundUpAmount;
         this.timestamp = timestamp;
         this.isSettled = 0;
+        this.category = category != null ? category : "DEBIT";
+        this.merchant = merchant != null ? merchant : "";
     }
 }

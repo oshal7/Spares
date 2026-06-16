@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@color/card_dark"
+    android:paddingBottom="32dp">
+
+    <!-- Drag handle -->
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="14dp"
+        android:layout_marginBottom="20dp"
+        android:background="@color/divider" />
+
+    <!-- Title -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:text="Transfer Round-ups"
+        android:textColor="@color/text_primary"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="28dp"
+        android:text="Open your UPI app and complete the transfer, then come back to confirm."
+        android:textColor="@color/text_secondary"
+        android:textSize="13sp" />
+
+    <!-- Amount display -->
+    <TextView
+        android:id="@+id/bs_tv_amount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="6dp"
+        android:text="₹0.00"
+        android:textColor="@color/accent_green"
+        android:textSize="52sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="28dp"
+        android:text="accumulated round-ups"
+        android:textColor="@color/text_secondary"
+        android:textSize="12sp" />
+
+    <!-- UPI ID row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
+        android:layout_marginBottom="28dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="TRANSFERRING TO"
+                android:textColor="@color/text_secondary"
+                android:textSize="10sp"
+                android:letterSpacing="0.1"
+                android:textAllCaps="true" />
+
+            <TextView
+                android:id="@+id/bs_tv_vpa"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textColor="@color/text_primary"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/bs_tv_change_vpa"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:text="Change"
+            android:textColor="@color/accent_green"
+            android:textSize="13sp" />
+
+    </LinearLayout>
+
+    <!-- Open UPI App button -->
+    <Button
+        android:id="@+id/bs_btn_open_upi"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="12dp"
+        android:text="Open UPI App"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:backgroundTint="@color/accent_green"
+        android:textColor="@color/bg_dark"
+        android:stateListAnimator="@null"
+        style="@style/Widget.MaterialComponents.Button" />
+
+    <!-- Mark as Done button (shown after UPI intent fires) -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/bs_btn_mark_done"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:text="Mark Transfer as Done"
+        android:textSize="15sp"
+        android:textColor="@color/accent_green"
+        android:visibility="gone"
+        app:strokeColor="@color/accent_green"
+        app:strokeWidth="1dp"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+</LinearLayout>

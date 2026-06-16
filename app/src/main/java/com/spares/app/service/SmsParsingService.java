@@ -97,20 +97,22 @@ public class SmsParsingService extends Service {
                 body,
                 result.originalAmount,
                 result.roundUpAmount,
-                timestamp
+                timestamp,
+                result.category,
+                result.merchant
             );
             db.transactionDao().insertTransaction(tx);
 
-            // ── Update goal accumulated total ────────────────────────────────
-            // Clamp at target (don't overflow past goal ceiling)
-            double newTotal = activeGoal.currentAccumulated + result.roundUpAmount;
-            if (newTotal <= activeGoal.targetAmount) {
-                db.goalDao().addToAccumulated(result.roundUpAmount);
-            } else {
-                // Cap at target
-                double remaining = activeGoal.targetAmount - activeGoal.currentAccumulated;
-                if (remaining > 0) {
-                    db.goalDao().addToAccumulated(remaining);
+            // ── Update goal accumulated total (DEBIT/TRANSFER only) ──────────
+            if (!"CREDIT".equals(result.category) && result.roundUpAmount > 0) {
+                double newTotal = activeGoal.currentAccumulated + result.roundUpAmount;
+                if (newTotal <= activeGoal.targetAmount) {
+                    db.goalDao().addToAccumulated(result.roundUpAmount);
+                } else {
+                    double remaining = activeGoal.targetAmount - activeGoal.currentAccumulated;
+                    if (remaining > 0) {
+                        db.goalDao().addToAccumulated(remaining);
+                    }
                 }
             }
 

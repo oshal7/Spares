@@ -6,83 +6,114 @@
     android:layout_height="wrap_content"
     android:layout_marginBottom="8dp"
     app:cardBackgroundColor="@color/card_dark"
-    app:cardCornerRadius="16dp"
+    app:cardCornerRadius="14dp"
     app:cardElevation="0dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="16dp"
         android:gravity="center_vertical">
 
-        <!-- Green coin dot -->
+        <!-- Category colour bar (left edge) -->
         <View
-            android:layout_width="8dp"
-            android:layout_height="8dp"
-            android:background="@drawable/dot_green"
-            android:layout_marginEnd="12dp" />
+            android:id="@+id/view_category_bar"
+            android:layout_width="4dp"
+            android:layout_height="56dp"
+            android:layout_marginStart="0dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="12dp" />
 
-        <!-- Info block -->
+        <!-- Content -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:paddingStart="14dp"
+            android:paddingEnd="4dp"
+            android:paddingTop="14dp"
+            android:paddingBottom="14dp">
 
+            <!-- Row 1: Merchant / sender name -->
             <TextView
-                android:id="@+id/tv_sender"
-                android:layout_width="wrap_content"
+                android:id="@+id/tv_merchant"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textColor="@color/text_primary"
-                android:textSize="13sp"
-                android:textStyle="bold" />
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:maxLines="1"
+                android:ellipsize="end" />
 
+            <!-- Row 2: Amount + category verb -->
             <TextView
-                android:id="@+id/tv_amounts"
-                android:layout_width="wrap_content"
+                android:id="@+id/tv_amount_label"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
+                android:layout_marginTop="3dp"
                 android:textColor="@color/text_secondary"
                 android:textSize="12sp" />
 
-            <TextView
-                android:id="@+id/tv_timestamp"
-                android:layout_width="wrap_content"
+            <!-- Row 3: Bank sender ID + timestamp -->
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:textColor="@color/text_secondary"
-                android:textSize="11sp" />
+                android:orientation="horizontal"
+                android:layout_marginTop="3dp">
+
+                <TextView
+                    android:id="@+id/tv_sender"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="10sp"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=" · "
+                    android:textColor="@color/text_secondary"
+                    android:textSize="10sp" />
+
+                <TextView
+                    android:id="@+id/tv_timestamp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="10sp" />
+
+            </LinearLayout>
 
         </LinearLayout>
 
-        <!-- Right: round-up chip -->
+        <!-- Right: round-up chip + settlement status -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:gravity="end">
+            android:gravity="end|center_vertical"
+            android:paddingEnd="16dp">
 
             <TextView
                 android:id="@+id/tv_roundup"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="@drawable/chip_green"
                 android:paddingStart="10dp"
                 android:paddingEnd="10dp"
                 android:paddingTop="4dp"
                 android:paddingBottom="4dp"
-                android:textColor="@color/bg_dark"
                 android:textSize="13sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:visibility="gone" />
 
             <TextView
                 android:id="@+id/tv_settled"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:layout_gravity="end"
-                android:textColor="@color/text_secondary"
                 android:textSize="10sp" />
 
         </LinearLayout>

@@ -1,19 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Primary dark background -->
-    <color name="bg_dark">#0F0F14</color>
-    <!-- Card / surface -->
-    <color name="card_dark">#1A1A24</color>
-    <!-- Accent: green for savings / positive -->
-    <color name="accent_green">#00E676</color>
-    <!-- Accent: yellow/amber for pending state -->
-    <color name="accent_yellow">#FFD54F</color>
-    <!-- Text: primary white -->
-    <color name="text_primary">#F0F0F5</color>
-    <!-- Text: secondary muted -->
-    <color name="text_secondary">#6B6B85</color>
+    <color name="bg_dark">#0C0C15</color>
+    <color name="card_dark">#13131E</color>
+    <color name="card_elevated">#1C1C2C</color>
+    <color name="divider">#1E1E35</color>
 
-    <!-- Material theme required colors -->
+    <color name="accent_green">#4CAF50</color>
+    <color name="accent_green_light">#81C784</color>
+    <color name="accent_green_surface">#0D220E</color>
+
+    <color name="accent_yellow">#FFC107</color>
+    <color name="accent_yellow_surface">#241A00</color>
+
+    <color name="cat_debit">#EF5350</color>
+    <color name="cat_debit_surface">#2A0F0F</color>
+    <color name="cat_credit">#26A69A</color>
+    <color name="cat_credit_surface">#0A2220</color>
+    <color name="cat_transfer">#5C6BC0</color>
+    <color name="cat_transfer_surface">#141835</color>
+
+    <color name="text_primary">#E8E8F0</color>
+    <color name="text_secondary">#6B6B8A</color>
+
     <color name="purple_200">#FFBB86FC</color>
     <color name="purple_500">#FF6200EE</color>
     <color name="purple_700">#FF3700B3</color>
