@@ -2,7 +2,7 @@ name: Build Spares APK
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, claude/apk-build-updated-repo-mto6zg ]
   workflow_dispatch:
 
 jobs:
