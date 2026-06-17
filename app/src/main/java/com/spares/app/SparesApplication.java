@@ -3,6 +3,7 @@ package com.spares.app;
 import android.app.Application;
 import android.content.Context;
 
+import androidx.work.BackoffPolicy;
 import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
@@ -39,6 +40,7 @@ public class SparesApplication extends Application {
         PeriodicWorkRequest sweepRequest = new PeriodicWorkRequest.Builder(
                 WeeklySweepWorker.class, 7, TimeUnit.DAYS)
                 .setInitialDelay(sweepDelayMs, TimeUnit.MILLISECONDS)
+                .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, PeriodicWorkRequest.MIN_BACKOFF_MILLIS, TimeUnit.MILLISECONDS)
                 .build();
         workManager.enqueueUniquePeriodicWork(
                 WORK_WEEKLY_SWEEP, ExistingPeriodicWorkPolicy.KEEP, sweepRequest);

@@ -22,20 +22,19 @@ public interface TransactionDao {
     @Query("SELECT * FROM transactions WHERE category = :category ORDER BY timestamp DESC")
     LiveData<List<Transaction>> getTransactionsByCategory(String category);
 
-    // Phase 1: PENDING only. Phase 2 will expand to IN ('PENDING','SKIPPED')
-    @Query("SELECT COALESCE(SUM(round_up_amount), 0.0) FROM transactions WHERE sync_status = 'PENDING' AND category != 'CREDIT'")
+    @Query("SELECT COALESCE(SUM(round_up_amount), 0.0) FROM transactions WHERE sync_status IN ('PENDING', 'SKIPPED') AND category != 'CREDIT'")
     LiveData<Double> getUnsettledTotal();
 
-    @Query("SELECT COALESCE(SUM(round_up_amount), 0.0) FROM transactions WHERE sync_status = 'PENDING' AND category != 'CREDIT'")
+    @Query("SELECT COALESCE(SUM(round_up_amount), 0.0) FROM transactions WHERE sync_status IN ('PENDING', 'SKIPPED') AND category != 'CREDIT'")
     double getUnsettledTotalSync();
 
-    @Query("UPDATE transactions SET sync_status = 'SWEPT_SUCCESS' WHERE sync_status = 'PENDING' AND category != 'CREDIT'")
+    @Query("UPDATE transactions SET sync_status = 'SWEPT_SUCCESS' WHERE sync_status IN ('PENDING', 'SKIPPED') AND category != 'CREDIT'")
     void sweepSuccessAll();
 
-    @Query("UPDATE transactions SET sync_status = 'SKIPPED' WHERE sync_status = 'PENDING' AND category != 'CREDIT'")
+    @Query("UPDATE transactions SET sync_status = 'SKIPPED' WHERE sync_status IN ('PENDING', 'SKIPPED') AND category != 'CREDIT'")
     void markAllSkipped();
 
-    @Query("SELECT * FROM transactions WHERE sync_status = 'PENDING' AND category != 'CREDIT'")
+    @Query("SELECT * FROM transactions WHERE sync_status IN ('PENDING', 'SKIPPED') AND category != 'CREDIT'")
     List<Transaction> getPendingTransactionsSync();
 
     @Query("SELECT COUNT(*) FROM transactions WHERE original_amount = :amount AND timestamp > :windowStart")

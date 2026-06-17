@@ -12,6 +12,10 @@ android {
         targetSdk 34
         versionCode 1
         versionName "1.0"
+
+        buildConfigField "String", "SAFEGOLD_BASE_URL", '"https://api-sandbox.safegold.com/"'
+        buildConfigField "String", "SAFEGOLD_API_KEY", '"YOUR_KEY"'
+        buildConfigField "String", "PDN_BASE_URL", '"https://your-backend.com/"'
     }
 
     buildTypes {
