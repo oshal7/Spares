@@ -32,6 +32,7 @@ android {
 
     buildFeatures {
         viewBinding false
+        buildConfig true
     }
 }
 
@@ -56,4 +57,13 @@ dependencies {
 
     // Activity + Fragment KTX
     implementation 'androidx.activity:activity:1.8.2'
+
+    // WorkManager (scheduled sweep + PDN notification)
+    implementation 'androidx.work:work-runtime:2.9.0'
+
+    // Networking (Phase 2: SafeGold + PDN backend)
+    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    implementation 'com.squareup.okhttp3:logging-interceptor:4.12.0'
 }

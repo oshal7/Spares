@@ -279,6 +279,60 @@
 
             </LinearLayout>
 
+            <!-- ══ AUTO-INVEST NUDGE ═════════════════════════════════════════ -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/layout_nudge_panel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginTop="10dp"
+                app:cardBackgroundColor="@color/card_dark"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="0dp"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="GO HANDS-FREE"
+                        android:textColor="@color/accent_green_light"
+                        android:textSize="10sp"
+                        android:letterSpacing="0.12"
+                        android:textAllCaps="true"
+                        android:layout_marginBottom="6dp" />
+
+                    <TextView
+                        android:id="@+id/tv_nudge_amount"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="₹0 uninvested spare change"
+                        android:textColor="@color/text_primary"
+                        android:textSize="15sp"
+                        android:layout_marginBottom="14dp" />
+
+                    <Button
+                        android:id="@+id/btn_activate_autopay"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:text="Activate Auto-Invest"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:backgroundTint="@color/accent_green"
+                        android:textColor="@color/bg_dark"
+                        android:stateListAnimator="@null"
+                        style="@style/Widget.MaterialComponents.Button" />
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
+
             <!-- ══ REFRESH STATUS ════════════════════════════════════════════ -->
             <TextView
                 android:id="@+id/tv_refresh_status"

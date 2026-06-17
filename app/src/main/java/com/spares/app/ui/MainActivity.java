@@ -39,8 +39,10 @@ import java.util.Locale;
 public class MainActivity extends AppCompatActivity {
 
     private static final double TRANSFER_THRESHOLD = 50.0;
+    private static final double NUDGE_THRESHOLD    = 50.0;
     private static final String PREFS_NAME = "spares_prefs";
     private static final String PREF_VPA   = "savings_vpa";
+    private static final String PREF_MANDATE_ACTIVE = "mandate_active";
 
     private MainViewModel viewModel;
     private TransactionAdapter adapter;
@@ -56,6 +58,9 @@ public class MainActivity extends AppCompatActivity {
     private AppCompatImageButton btnRefresh, btnChangeGoal;
     private LinearLayout layoutEmpty;
     private ChipGroup chipGroupCategory;
+    private androidx.cardview.widget.CardView layoutNudgePanel;
+    private TextView tvNudgeAmount;
+    private Button btnActivateAutopay;
 
     private Goal currentGoal;
     private double unsettledTotal = 0.0;
@@ -110,8 +115,15 @@ public class MainActivity extends AppCompatActivity {
         chipGroupCategory      = findViewById(R.id.chip_group_category);
         layoutMerchantInsight  = findViewById(R.id.layout_merchant_insight);
         tvMerchantInsight      = findViewById(R.id.tv_merchant_insight);
+        layoutNudgePanel       = findViewById(R.id.layout_nudge_panel);
+        tvNudgeAmount          = findViewById(R.id.tv_nudge_amount);
+        btnActivateAutopay     = findViewById(R.id.btn_activate_autopay);
 
         btnTransfer.setOnClickListener(v -> showTransferSheet());
+
+        btnActivateAutopay.setOnClickListener(v ->
+            Toast.makeText(this, "Auto-Invest is coming soon", Toast.LENGTH_SHORT).show()
+        );
 
         btnRefresh.setOnClickListener(v -> {
             if (Boolean.TRUE.equals(viewModel.isRefreshing.getValue())) return;
@@ -160,11 +172,10 @@ public class MainActivity extends AppCompatActivity {
         viewModel.activeGoal.observe(this, goal -> {
             currentGoal = goal;
             if (goal == null) {
-                startActivity(new Intent(this, GoalSetupActivity.class));
-                finish();
-                return;
+                showEmptyDashboard();
+            } else {
+                updateGoalUI(goal);
             }
-            updateGoalUI(goal);
         });
 
         viewModel.filteredTransactions.observe(this, txs -> {
@@ -179,6 +190,7 @@ public class MainActivity extends AppCompatActivity {
             tvUnsettledAmount.setText(
                 String.format(Locale.getDefault(), "₹%.2f", unsettledTotal));
             updateTransferButton();
+            updateNudgePanel();
         });
 
         viewModel.isRefreshing.observe(this, refreshing -> {
@@ -221,7 +233,34 @@ public class MainActivity extends AppCompatActivity {
         updateTransferButton();
     }
 
+    private void showEmptyDashboard() {
+        tvGoalTitle.setText("No goal set yet");
+        tvAccumulatedAmount.setText("₹0.00");
+        tvTargetAmount.setText("Tap settings to start a goal");
+        progressBar.setProgress(0);
+        tvProgressLabel.setText("Round-ups are still being tracked");
+        updateTransferButton();
+    }
+
+    private void updateNudgePanel() {
+        boolean mandateActive = prefs.getBoolean(PREF_MANDATE_ACTIVE, false);
+        boolean shouldShow = !mandateActive && unsettledTotal >= NUDGE_THRESHOLD;
+        if (shouldShow) {
+            tvNudgeAmount.setText(String.format(Locale.getDefault(),
+                "₹%.2f uninvested spare change", unsettledTotal));
+            layoutNudgePanel.setVisibility(View.VISIBLE);
+        } else {
+            layoutNudgePanel.setVisibility(View.GONE);
+        }
+    }
+
     private void updateTransferButton() {
+        if (currentGoal == null) {
+            btnTransfer.setEnabled(false);
+            btnTransfer.setText("Set a goal to transfer");
+            tvThresholdHint.setVisibility(View.GONE);
+            return;
+        }
         boolean canTransfer = unsettledTotal >= TRANSFER_THRESHOLD;
         btnTransfer.setEnabled(canTransfer);
         if (canTransfer) {

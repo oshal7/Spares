@@ -27,7 +27,7 @@ public class TransactionAdapter extends ListAdapter<Transaction, TransactionAdap
                 return a.id == b.id;
             }
             @Override public boolean areContentsTheSame(@NonNull Transaction a, @NonNull Transaction b) {
-                return a.isSettled == b.isSettled
+                return a.syncStatus.equals(b.syncStatus)
                     && a.roundUpAmount == b.roundUpAmount
                     && a.category.equals(b.category);
             }
@@ -112,9 +112,12 @@ public class TransactionAdapter extends ListAdapter<Transaction, TransactionAdap
             if ("CREDIT".equals(category)) {
                 tvSettled.setText("received");
                 tvSettled.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.cat_credit));
-            } else if (tx.isSettled == 1) {
+            } else if (Transaction.STATUS_SWEPT_SUCCESS.equals(tx.syncStatus)) {
                 tvSettled.setText("transferred");
                 tvSettled.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.text_secondary));
+            } else if (Transaction.STATUS_SKIPPED.equals(tx.syncStatus)) {
+                tvSettled.setText("skipped — rolled over");
+                tvSettled.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.accent_yellow));
             } else {
                 tvSettled.setText("pending");
                 tvSettled.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.accent_yellow));

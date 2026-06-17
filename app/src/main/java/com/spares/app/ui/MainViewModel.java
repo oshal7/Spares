@@ -71,7 +71,7 @@ public class MainViewModel extends AndroidViewModel {
 
     public void settleAll(Runnable onDone) {
         executor.execute(() -> {
-            db.transactionDao().settleAllPending();
+            db.transactionDao().sweepSuccessAll();
             if (onDone != null) onDone.run();
         });
     }
@@ -83,11 +83,7 @@ public class MainViewModel extends AndroidViewModel {
         executor.execute(() -> {
             try {
                 Goal goal = db.goalDao().getActiveGoalSync();
-                if (goal == null) {
-                    _lastRefreshStatus.postValue("Set a goal first");
-                    _isRefreshing.postValue(false);
-                    return;
-                }
+                Integer goalId = (goal != null) ? goal.id : null;
 
                 long latestTx = db.transactionDao().getLatestTransactionTimestamp();
                 long cutoff;
@@ -132,18 +128,19 @@ public class MainViewModel extends AndroidViewModel {
                         }
 
                         Transaction tx = new Transaction(
-                            goal.id,
+                            goalId,
                             sender != null ? sender : "UNKNOWN",
                             body,
                             r.originalAmount,
                             r.roundUpAmount,
                             date,
                             r.category,
-                            r.merchant
+                            r.merchant,
+                            -1
                         );
                         db.transactionDao().insertTransaction(tx);
 
-                        if (!"CREDIT".equals(r.category) && r.roundUpAmount > 0) {
+                        if (goal != null && !"CREDIT".equals(r.category) && r.roundUpAmount > 0) {
                             double newTotal = goal.currentAccumulated + r.roundUpAmount;
                             if (newTotal <= goal.targetAmount) {
                                 db.goalDao().addToAccumulated(r.roundUpAmount);
